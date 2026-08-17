@@ -1,0 +1,23 @@
+x-common-volumes: &common-volumes
+  - ./config.toml:/MoneyPrinterTurbo/config.toml
+  - ./storage:/MoneyPrinterTurbo/storage
+
+services:
+  webui:
+    image: ghcr.io/harry0703/moneyprinterturbo:latest
+    container_name: "moneyprinterturbo-webui"
+    ports:
+      # 0.0.0.0 바인딩: 같은 LAN의 다른 기기(휴대폰, PC)에서도 접속 가능.
+      # NAS 자체에서만 쓸 거면 "127.0.0.1:8501:8501"로 바꿔도 됨.
+      - "8501:8501"
+    command: [ "streamlit", "run", "./webui/Main.py", "--server.address=0.0.0.0", "--server.port=8501", "--server.enableCORS=True", "--browser.gatherUsageStats=False", "--client.toolbarMode=minimal", "--logger.hideWelcomeMessage=True", "--server.showEmailPrompt=False" ]
+    volumes: *common-volumes
+    restart: unless-stopped
+  api:
+    image: ghcr.io/harry0703/moneyprinterturbo:latest
+    container_name: "moneyprinterturbo-api"
+    ports:
+      - "8080:8080"
+    command: [ "python3", "main.py" ]
+    volumes: *common-volumes
+    restart: unless-stopped
